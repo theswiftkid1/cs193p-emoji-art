@@ -148,12 +148,11 @@ extension CGSize {
     }
 }
 
-extension String
-{
+extension String {
     // returns ourself but with numbers appended to the end
     // if necessary to make ourself unique with respect to those other Strings
     func uniqued<StringCollection>(withRespectTo otherStrings: StringCollection) -> String
-        where StringCollection: Collection, StringCollection.Element == String {
+    where StringCollection: Collection, StringCollection.Element == String {
         var unique = self
         while otherStrings.contains(unique) {
             unique = unique.incremented

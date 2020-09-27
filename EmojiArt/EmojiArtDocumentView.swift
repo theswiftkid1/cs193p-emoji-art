@@ -19,10 +19,10 @@ struct EmojiArtDocumentView: View {
                 HStack {
                     ForEach(EmojiArtDocument.palette.map { String($0) }, id: \.self) { emoji in
                         Text(emoji)
-                            .font(Font.system(size: self.defaultEmojiSize))
+                            .font(Font.system(size: defaultEmojiSize))
                             .onDrag {
                                 NSItemProvider(object: emoji as NSString)
-                        }
+                            }
                     }
                 }
             }
@@ -34,22 +34,22 @@ struct EmojiArtDocumentView: View {
                     Color.white
                         .overlay(
                             Group {
-                                if self.document.backgroundImage != nil {
-                                    Image(uiImage: self.document.backgroundImage!)
+                                if document.backgroundImage != nil {
+                                    Image(uiImage: document.backgroundImage!)
                                 }
                             }
-                    )
+                        )
                         .edgesIgnoringSafeArea([.horizontal, .bottom])
                         .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers, location in
                             var location = geometry.convert(location, from: .global)
                             location = CGPoint(x: location.x - geometry.size.width / 2, y: location.y - geometry.size.height / 2)
-                            return self.drop(providers: providers, at: location)
-                    }
+                            return drop(providers: providers, at: location)
+                        }
 
-                    ForEach(self.document.emojis) { emoji in
+                    ForEach(document.emojis) { emoji in
                         Text(emoji.text)
-                            .font(self.font(for: emoji))
-                            .position(self.position(for: emoji, in: geometry.size))
+                            .font(font(for: emoji))
+                            .position(position(for: emoji, in: geometry.size))
                     }
                 }
             }
@@ -64,17 +64,14 @@ struct EmojiArtDocumentView: View {
         CGPoint(x: emoji.location.x + size.width / 2, y: emoji.location.y + size.height / 2)
     }
 
-    
-
     private func drop(providers: [NSItemProvider], at location: CGPoint) -> Bool {
         var found = providers.loadFirstObject(ofType: URL.self) { url in
             print("dropped \(url)")
-            self.document.setBackgroundURL(url)
+            document.setBackgroundURL(url)
         }
         if !found {
             found = providers.loadFirstObject(ofType: String.self) { string in
-                self.document.addEmoji(string, at: location, size: self.defaultEmojiSize)
-
+                document.addEmoji(string, at: location, size: defaultEmojiSize)
             }
         }
         return found
