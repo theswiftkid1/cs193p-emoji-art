@@ -10,6 +10,7 @@ import SwiftUI
 
 struct EmojiArtDocumentView: View {
     @ObservedObject var document: EmojiArtDocument
+    @State var selectedEmojis: [EmojiArt.Emoji] = []
 
     private let defaultEmojiSize: CGFloat = 40
 
@@ -40,9 +41,15 @@ struct EmojiArtDocumentView: View {
                         .gesture(doubleTapToZoom(in: geometry.size))
 
                     ForEach(document.emojis) { emoji in
-                        Text(emoji.text)
-                            .font(animatableWithSize: emoji.fontSize * zoomScale)
-                            .position(position(for: emoji, in: geometry.size))
+                        ZStack {
+                            emojiSelection(for: emoji)
+
+                            Text(emoji.text)
+                        }
+                        .fixedSize()
+                        .onTapGesture(perform: selectEmoji(emoji))
+                        .font(animatableWithSize: emoji.fontSize * zoomScale)
+                        .position(position(for: emoji, in: geometry.size))
                     }
                 }
                 .clipped()
@@ -57,6 +64,27 @@ struct EmojiArtDocumentView: View {
                     return drop(providers: providers, at: location)
                 }
             }
+        }
+    }
+
+
+    private func selectEmoji(_ emoji: EmojiArt.Emoji) -> () -> Void {
+        {
+            if let selectedEmojiIndex = selectedEmojis.firstIndex(of: emoji) {
+                selectedEmojis.remove(at: selectedEmojiIndex)
+            } else {
+                selectedEmojis.append(emoji)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func emojiSelection(for emoji: EmojiArt.Emoji) -> some View {
+        if (selectedEmojis.contains(emoji)) {
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(lineWidth: 2)
+        } else {
+            EmptyView()
         }
     }
 
