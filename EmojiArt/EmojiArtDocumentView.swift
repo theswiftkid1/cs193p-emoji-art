@@ -57,17 +57,16 @@ struct EmojiArtDocumentView: View {
                             Text(emoji.text)
                         }
                         .fixedSize()
-                        .onTapGesture(perform: selectEmoji(emoji))
-                        .onDrag {
-                            NSItemProvider(object: emoji.text as NSString)
-                        }
                         .font(animatableWithSize: emojiScale(for: emoji))
                         .position(position(for: emoji, in: geometry.size))
+                        .gesture(document.selectedEmojiIds.contains(emoji.id) ? moveEmojiGesture : nil)
+                        .onTapGesture(perform: selectEmoji(emoji))
                     }
                 }
                 .clipped()
                 .gesture(panGesture)
-                .gesture(!document.selectedEmojiIds.isEmpty ? emojiZoomGesture : nil)
+                .gesture(!document.selectedEmojiIds.isEmpty ? zoomEmojiGesture : nil)
+                .gesture(document.selectedEmojiIds.isEmpty ? zoomGesture : nil)
                 .edgesIgnoringSafeArea([.horizontal, .bottom])
                 .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers, location in
                     var location = geometry.convert(location, from: .global)
@@ -89,7 +88,7 @@ struct EmojiArtDocumentView: View {
 
     @GestureState private var emojiZoomScale: CGFloat = 1.0
 
-    private var emojiZoomGesture: some Gesture {
+    private var zoomEmojiGesture: some Gesture {
         MagnificationGesture()
             .updating($emojiZoomScale) { (currentScale, emojiZoomScale, transaction) in
                 emojiZoomScale = currentScale
@@ -127,11 +126,28 @@ struct EmojiArtDocumentView: View {
 
     // MARK: Emojis Position
 
+    @GestureState private var emojiOffset: CGSize = .zero
+
+    private var moveEmojiGesture: some Gesture {
+        DragGesture()
+            .updating($emojiOffset) { currentEmojiOffset, emojiOffset, transaction in
+                emojiOffset = currentEmojiOffset.translation
+            }
+            .onEnded { finalEmojiOffset in
+                for emojiId in document.selectedEmojiIds {
+                    document.moveEmoji(document.getEmoji(emojiId)!, by: finalEmojiOffset.translation)
+                }
+            }
+    }
+
     private func position(for emoji: EmojiArt.Emoji, in size: CGSize) -> CGPoint {
         var location = emoji.location
         location = CGPoint(x: location.x * zoomScale, y: location.y * zoomScale)
         location = CGPoint(x: location.x + size.width / 2, y: location.y + size.height / 2)
         location = CGPoint(x: location.x + panOffset.width, y: location.y + panOffset.height)
+        if document.selectedEmojiIds.contains(emoji.id) {
+            location = CGPoint(x: location.x + emojiOffset.width, y: location.y + emojiOffset.height)
+        }
         return location
     }
 
