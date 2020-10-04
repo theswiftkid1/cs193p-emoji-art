@@ -10,7 +10,6 @@ import SwiftUI
 
 struct EmojiArtDocumentView: View {
     @ObservedObject var document: EmojiArtDocument
-    @State var selectedEmojis: [EmojiArt.Emoji] = []
 
     private let defaultEmojiSize: CGFloat = 40
 
@@ -19,7 +18,7 @@ struct EmojiArtDocumentView: View {
             HStack {
                 ScrollView(.horizontal) {
                     HStack {
-                        ForEach(EmojiArtDocument.palette.map { String($0) }, id: \.self) { emoji in
+                        ForEach(document.palette.map { String($0) }, id: \.self) { emoji in
                             Text(emoji)
                                 .font(Font.system(size: defaultEmojiSize))
                                 .onDrag {
@@ -68,8 +67,7 @@ struct EmojiArtDocumentView: View {
                 }
                 .clipped()
                 .gesture(panGesture)
-//                .gesture(selectedEmojis.isEmpty ? zoomGesture.exclusively(before: dragSelectedEmojis) : nil)
-                .gesture(!selectedEmojis.isEmpty ? emojiZoomGesture : nil)
+                .gesture(!document.selectedEmojiIds.isEmpty ? emojiZoomGesture : nil)
                 .edgesIgnoringSafeArea([.horizontal, .bottom])
                 .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers, location in
                     var location = geometry.convert(location, from: .global)
@@ -85,7 +83,7 @@ struct EmojiArtDocumentView: View {
     // MARK: Emojis Scale
 
     private func emojiScale(for emoji: EmojiArt.Emoji) -> CGFloat {
-        let emojiScale = selectedEmojis.contains(matching: emoji) ? emojiZoomScale : 1.0
+        let emojiScale = document.selectedEmojiIds.contains(matching: emoji.id) ? emojiZoomScale : 1.0
         return emoji.fontSize * zoomScale * emojiScale
     }
 
@@ -97,8 +95,8 @@ struct EmojiArtDocumentView: View {
                 emojiZoomScale = currentScale
             }
             .onEnded { finalZoomValue in
-                for emoji in selectedEmojis {
-                    document.scaleEmoji(emoji, by: finalZoomValue)
+                for emojiId in document.selectedEmojiIds {
+                    document.scaleEmoji(document.getEmoji(emojiId)!, by: finalZoomValue)
                 }
             }
     }
@@ -107,23 +105,19 @@ struct EmojiArtDocumentView: View {
 
     private var deselectAllEmojis: () -> Void {
         {
-            selectedEmojis = []
+            document.clearSelectedEmojis()
         }
     }
 
     private func selectEmoji(_ emoji: EmojiArt.Emoji) -> () -> Void {
         {
-            if let selectedEmojiIndex = selectedEmojis.firstIndex(of: emoji) {
-                selectedEmojis.remove(at: selectedEmojiIndex)
-            } else {
-                selectedEmojis.append(emoji)
-            }
+            document.toggleSelectedEmoji(emoji.id)
         }
     }
 
     @ViewBuilder
     private func emojiSelection(for emoji: EmojiArt.Emoji) -> some View {
-        if (selectedEmojis.contains(emoji)) {
+        if (document.selectedEmojiIds.contains(emoji.id)) {
             RoundedRectangle(cornerRadius: 10)
                 .stroke(lineWidth: 2)
         } else {

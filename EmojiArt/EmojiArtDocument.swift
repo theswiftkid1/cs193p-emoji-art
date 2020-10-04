@@ -9,29 +9,49 @@
 import SwiftUI
 
 class EmojiArtDocument: ObservableObject {
-    static let palette: String = "😄😆😅😂😍"
+    // MARK: Generic vars
+    private static let untitled = "EmojiArtDocument.untitled"
+    var emojis: [EmojiArt.Emoji] { emojiArt.emojis }
+    let palette: String = "😄😆😅😂😍"
 
+    // MARK: Published vars
+    @Published var selectedEmojiIds: Set<Int> = Set()
     @Published private var emojiArt: EmojiArt {
         didSet {
             UserDefaults.standard.set(emojiArt.json, forKey: EmojiArtDocument.untitled)
         }
     }
+    @Published private(set) var backgroundImage: UIImage?
 
-    private static let untitled = "EmojiArtDocument.untitled"
+
+    // MARK: Init
 
     init() {
         emojiArt = EmojiArt(json: UserDefaults.standard.data(forKey: EmojiArtDocument.untitled)) ?? EmojiArt()
         fetchBackgroundImageData()
     }
 
-    @Published private(set) var backgroundImage: UIImage?
-
-    var emojis: [EmojiArt.Emoji] { emojiArt.emojis }
-
-    // MARK: -Intent(s)
+    // MARK: Intents
 
     func addEmoji(_ emoji: String, at location: CGPoint, size: CGFloat) {
         emojiArt.addEmoji(emoji, x: Int(location.x), y: Int(location.y), size: Int(size))
+    }
+
+    func getEmoji(_ id: Int) -> EmojiArt.Emoji? {
+        for emoji in emojis {
+            if emoji.id == id {
+                return emoji
+            }
+        }
+        return nil
+    }
+
+    func toggleSelectedEmoji(_ id: Int) {
+        selectedEmojiIds.toggleElement(element: id)
+    }
+
+    func clearSelectedEmojis() {
+        selectedEmojiIds = []
     }
 
     func moveEmoji(_ emoji: EmojiArt.Emoji, by offset: CGSize) {
