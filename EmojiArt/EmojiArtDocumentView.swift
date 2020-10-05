@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct EmojiArtDocumentView: View {
     @ObservedObject var document: EmojiArtDocument
@@ -18,64 +19,70 @@ struct EmojiArtDocumentView: View {
             HStack {
                 ScrollView(.horizontal) {
                     HStack {
-                        ForEach(document.palette.map { String($0) }, id: \.self) { emoji in
-                            Text(emoji)
+                        ForEach(document.palette.map { String($0) }, id: \.self) { paletteValue in
+                            Text(paletteValue)
                                 .font(Font.system(size: defaultEmojiSize))
                                 .onDrag {
-                                    NSItemProvider(object: emoji as NSString)
+                                    NSItemProvider(object: paletteValue as NSString)
                                 }
                         }
                     }
                 }
-
-                Spacer()
-
-                Image(systemName: "trash")
-                    .font(.largeTitle)
-                    .onDrop(of: ["public.text"], isTargeted: nil) { providers, location in
-                        true
-                    }
             }
             .padding(.horizontal)
 
             GeometryReader { geometry in
-                ZStack {
-                    Color
-                        .white
-                        .overlay(
-                            OptionalImage(uiImage: document.backgroundImage)
-                                .scaleEffect(zoomScale)
-                                .offset(panOffset)
-                        )
-                        .onTapGesture(perform: deselectAllEmojis)
-                        .gesture(doubleTapToZoom(in: geometry.size))
+                VStack {
+                    ZStack {
+                        Color
+                            .white
+                            .overlay(
+                                OptionalImage(uiImage: document.backgroundImage)
+                                    .scaleEffect(zoomScale)
+                                    .offset(panOffset)
+                            )
+                            .gesture(doubleTapToZoom(in: geometry.size))
+                            .onTapGesture(perform: deselectAllEmojis)
 
-                    ForEach(document.emojis) { emoji in
-                        ZStack {
-                            emojiSelection(for: emoji)
+                        ForEach(document.emojis) { emoji in
+                            ZStack {
+                                emojiSelection(for: emoji)
 
-                            Text(emoji.text)
+                                Text(emoji.text)
+                            }
+                            .fixedSize()
+                            .font(animatableWithSize: emojiScale(for: emoji))
+                            .position(position(for: emoji, in: geometry.size))
+                            .gesture(document.selectedEmojiIds.contains(emoji.id) ? moveEmojiGesture : nil)
+                            .onTapGesture(perform: selectEmoji(emoji))
                         }
-                        .fixedSize()
-                        .font(animatableWithSize: emojiScale(for: emoji))
-                        .position(position(for: emoji, in: geometry.size))
-                        .gesture(document.selectedEmojiIds.contains(emoji.id) ? moveEmojiGesture : nil)
-                        .onTapGesture(perform: selectEmoji(emoji))
                     }
+
+                    HStack {
+                        Spacer()
+                        Button {
+                            document.deleteSelectedEmojis()
+                        } label: {
+                            Image(systemName: "trash.fill")
+                                .font(Font.largeTitle)
+                        }
+                    }
+                    .padding()
                 }
                 .clipped()
                 .gesture(panGesture)
                 .gesture(!document.selectedEmojiIds.isEmpty ? zoomEmojiGesture : nil)
                 .gesture(document.selectedEmojiIds.isEmpty ? zoomGesture : nil)
                 .edgesIgnoringSafeArea([.horizontal, .bottom])
-                .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers, location in
+                .onDrop(of: [UTType.image, UTType.plainText], isTargeted: nil) { providers, location in
                     var location = geometry.convert(location, from: .global)
                     location = CGPoint(x: location.x - geometry.size.width / 2, y: location.y - geometry.size.height / 2)
                     location = CGPoint(x: location.x - panOffset.width, y: location.y - panOffset.height)
                     location = CGPoint(x: location.x / zoomScale, y: location.y / zoomScale)
-                    return drop(providers: providers, at: location)
+                    return dropToCanvas(providers: providers, at: location)
                 }
             }
+
         }
     }
 
@@ -208,7 +215,9 @@ struct EmojiArtDocumentView: View {
             }
     }
 
-    private func drop(providers: [NSItemProvider], at location: CGPoint) -> Bool {
+    // MARK: Drop Actions
+
+    private func dropToCanvas(providers: [NSItemProvider], at location: CGPoint) -> Bool {
         var found = providers.loadFirstObject(ofType: URL.self) { url in
             print("dropped \(url)")
             document.setBackgroundURL(url)

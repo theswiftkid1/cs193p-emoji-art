@@ -50,10 +50,8 @@ struct EmojiArt: Codable {
     }
 
     mutating func deleteEmoji(id: Int) {
-        for index in emojis.indices {
-            if emojis[index].id == id {
-                emojis.remove(at: index)
-            }
-        }
+        emojis.removeAll(where: { emoji in
+            emoji.id == id
+        })
     }
 }
