@@ -53,7 +53,7 @@ struct EmojiArtDocumentView: View {
                             .fixedSize()
                             .font(animatableWithSize: emojiScale(for: emoji))
                             .position(position(for: emoji, in: geometry.size))
-                            .gesture(document.selectedEmojiIds.contains(emoji.id) ? moveEmojiGesture : nil)
+                            .gesture(moveEmojiGesture(singleEmojiId: emoji.id))
                             .onTapGesture(perform: selectEmoji(emoji))
                         }
                     }
@@ -135,14 +135,21 @@ struct EmojiArtDocumentView: View {
 
     @GestureState private var emojiOffset: CGSize = .zero
 
-    private var moveEmojiGesture: some Gesture {
+    private func moveEmojiGesture(singleEmojiId: Int) -> some Gesture {
         DragGesture()
+            .onChanged { _ in
+                document.setSingleEmoji(singleEmojiId)
+            }
             .updating($emojiOffset) { currentEmojiOffset, emojiOffset, transaction in
                 emojiOffset = currentEmojiOffset.translation
             }
             .onEnded { finalEmojiOffset in
                 for emojiId in document.selectedEmojiIds {
                     document.moveEmoji(document.getEmoji(emojiId)!, by: finalEmojiOffset.translation)
+                }
+                if singleEmojiId == document.singleEmojiId && document.selectedEmojiIds.isEmpty {
+                    document.moveEmoji(document.getEmoji(singleEmojiId)!, by: finalEmojiOffset.translation)
+                    document.unsetSingleEmoji()
                 }
             }
     }
@@ -152,7 +159,7 @@ struct EmojiArtDocumentView: View {
         location = CGPoint(x: location.x * zoomScale, y: location.y * zoomScale)
         location = CGPoint(x: location.x + size.width / 2, y: location.y + size.height / 2)
         location = CGPoint(x: location.x + panOffset.width, y: location.y + panOffset.height)
-        if document.selectedEmojiIds.contains(emoji.id) {
+        if document.selectedEmojiIds.contains(emoji.id) || document.singleEmojiId == emoji.id {
             location = CGPoint(x: location.x + emojiOffset.width, y: location.y + emojiOffset.height)
         }
         return location

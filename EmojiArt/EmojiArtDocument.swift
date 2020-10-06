@@ -12,10 +12,11 @@ class EmojiArtDocument: ObservableObject {
     // MARK: Generic vars
     private static let untitled = "EmojiArtDocument.untitled"
     var emojis: [EmojiArt.Emoji] { emojiArt.emojis }
+    var singleEmojiId: Int? = nil
     let palette: String = "😄😆😅😂😍"
 
     // MARK: Published vars
-    @Published var selectedEmojiIds: Set<Int> = Set()
+    @Published var selectedEmojiIds: Set<Int> = .init()
     @Published private var emojiArt: EmojiArt {
         didSet {
             UserDefaults.standard.set(emojiArt.json, forKey: EmojiArtDocument.untitled)
@@ -48,6 +49,16 @@ class EmojiArtDocument: ObservableObject {
 
     func toggleSelectedEmoji(_ id: Int) {
         selectedEmojiIds.toggleElement(element: id)
+    }
+
+    func setSingleEmoji(_ id: Int) {
+        if singleEmojiId == nil {
+            singleEmojiId = id
+        }
+    }
+
+    func unsetSingleEmoji() {
+        singleEmojiId = nil
     }
 
     func clearSelectedEmojis() {
