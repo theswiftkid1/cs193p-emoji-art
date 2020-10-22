@@ -11,15 +11,20 @@ import UniformTypeIdentifiers
 
 struct EmojiArtDocumentView: View {
     @ObservedObject var document: EmojiArtDocument
-
+    @State private var chosenPalette: String = ""
     private let defaultEmojiSize: CGFloat = 40
+
+    var isLoading: Bool {
+        document.backgroundURL != nil && document.backgroundImage == nil
+    }
 
     var body: some View {
         VStack {
             HStack {
+                PaletteChooser(document: document, chosenPalette: $chosenPalette)
                 ScrollView(.horizontal) {
                     HStack {
-                        ForEach(document.palette.map { String($0) }, id: \.self) { paletteValue in
+                        ForEach(chosenPalette.map { String($0) }, id: \.self) { paletteValue in
                             Text(paletteValue)
                                 .font(Font.system(size: defaultEmojiSize))
                                 .onDrag {
@@ -28,8 +33,10 @@ struct EmojiArtDocumentView: View {
                         }
                     }
                 }
+                .onAppear {
+                    chosenPalette = document.defaultPalette
+                }
             }
-            .padding(.horizontal)
 
             GeometryReader { geometry in
                 VStack {
@@ -44,17 +51,22 @@ struct EmojiArtDocumentView: View {
                             .gesture(doubleTapToZoom(in: geometry.size))
                             .onTapGesture(perform: deselectAllEmojis)
 
-                        ForEach(document.emojis) { emoji in
-                            ZStack {
-                                emojiSelection(for: emoji)
 
-                                Text(emoji.text)
+                        if isLoading {
+                            Image(systemName: "hourglass").imageScale(.large).spinning()
+                        } else {
+                            ForEach(document.emojis) { emoji in
+                                ZStack {
+                                    emojiSelection(for: emoji)
+
+                                    Text(emoji.text)
+                                }
+                                .fixedSize()
+                                .font(animatableWithSize: emojiScale(for: emoji))
+                                .position(position(for: emoji, in: geometry.size))
+                                .gesture(moveEmojiGesture(singleEmojiId: emoji.id))
+                                .onTapGesture(perform: selectEmoji(emoji))
                             }
-                            .fixedSize()
-                            .font(animatableWithSize: emojiScale(for: emoji))
-                            .position(position(for: emoji, in: geometry.size))
-                            .gesture(moveEmojiGesture(singleEmojiId: emoji.id))
-                            .onTapGesture(perform: selectEmoji(emoji))
                         }
                     }
 
@@ -74,6 +86,9 @@ struct EmojiArtDocumentView: View {
                 .gesture(!document.selectedEmojiIds.isEmpty ? zoomEmojiGesture : nil)
                 .gesture(document.selectedEmojiIds.isEmpty ? zoomGesture : nil)
                 .edgesIgnoringSafeArea([.horizontal, .bottom])
+                .onReceive(self.document.$backgroundImage) { image in
+                    zoomToFit(image, in: geometry.size)
+                }
                 .onDrop(of: [UTType.image, UTType.plainText], isTargeted: nil) { providers, location in
                     var location = geometry.convert(location, from: .global)
                     location = CGPoint(x: location.x - geometry.size.width / 2, y: location.y - geometry.size.height / 2)
@@ -226,8 +241,7 @@ struct EmojiArtDocumentView: View {
 
     private func dropToCanvas(providers: [NSItemProvider], at location: CGPoint) -> Bool {
         var found = providers.loadFirstObject(ofType: URL.self) { url in
-            print("dropped \(url)")
-            document.setBackgroundURL(url)
+            document.backgroundURL = url
         }
         if !found {
             found = providers.loadFirstObject(ofType: String.self) { string in
