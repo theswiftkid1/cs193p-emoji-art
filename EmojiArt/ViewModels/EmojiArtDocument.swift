@@ -9,29 +9,39 @@
 import SwiftUI
 import Combine
 
-class EmojiArtDocument: ObservableObject {
+class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
     // MARK: Generic vars
-    var emojis: [EmojiArt.Emoji] { emojiArt.emojis }
+    let id: UUID
     var singleEmojiId: Int? = nil
-    let palette: String = "😄😆😅😂😍"
-    private static let untitled = "EmojiArtDocument.untitled"
     private var autosaveCancellable: AnyCancellable?
     private var fetchImageCancellable: AnyCancellable?
 
     // MARK: Published vars
     @Published var selectedEmojiIds: Set<Int> = .init()
+    @Published var steadyStateZoomScale: CGFloat = 1.0
+    @Published var steadyStatePanOffset: CGSize = .zero
     @Published private var emojiArt: EmojiArt
     @Published private(set) var backgroundImage: UIImage?
 
     // MARK: Init
 
-    init() {
-        emojiArt = EmojiArt(json: UserDefaults.standard.data(forKey: EmojiArtDocument.untitled)) ?? EmojiArt()
+    init(id: UUID? = nil) {
+        self.id = id ?? UUID()
+        let defaultsKey = "EmojiArtDocument.\(self.id.uuidString)"
+        emojiArt = EmojiArt(json: UserDefaults.standard.data(forKey: defaultsKey)) ?? EmojiArt()
         autosaveCancellable = $emojiArt.sink { emojiArt in
             print("\(emojiArt.json?.utf8 ?? "nil")")
-            UserDefaults.standard.set(emojiArt.json, forKey: EmojiArtDocument.untitled)
+            UserDefaults.standard.set(emojiArt.json, forKey: defaultsKey)
         }
         fetchBackgroundImageData()
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+    static func == (lhs: EmojiArtDocument, rhs: EmojiArtDocument) -> Bool {
+        lhs.id == rhs.id
     }
 
     // MARK: Intents
@@ -41,7 +51,7 @@ class EmojiArtDocument: ObservableObject {
     }
 
     func getEmoji(_ id: Int) -> EmojiArt.Emoji? {
-        for emoji in emojis {
+        for emoji in emojiArt.emojis {
             if emoji.id == id {
                 return emoji
             }
