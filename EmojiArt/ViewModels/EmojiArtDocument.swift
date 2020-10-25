@@ -2,8 +2,8 @@
 //  EmojiArtDocument.swift
 //  EmojiArt
 //
-//  Created by theswiftkid_ on 8/9/20.
-//  Copyright © 2020 theswiftkid_. All rights reserved.
+//  Created by theswiftkid on 8/9/20.
+//  Copyright © 2020 theswiftkid. All rights reserved.
 //
 
 import SwiftUI
@@ -13,6 +13,7 @@ class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
     // MARK: Generic vars
     let id: UUID
     var singleEmojiId: Int? = nil
+    var emojis: [EmojiArt.Emoji] { emojiArt.emojis }
     private var autosaveCancellable: AnyCancellable?
     private var fetchImageCancellable: AnyCancellable?
 

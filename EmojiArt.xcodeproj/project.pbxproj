@@ -171,7 +171,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 1160;
 				LastUpgradeCheck = 1200;
-				ORGANIZATIONNAME = theswiftkid_;
+				ORGANIZATIONNAME = theswiftkid;
 				TargetAttributes = {
 					CA4DC6B224E093BF006C4B08 = {
 						CreatedOnToolsVersion = 11.6;

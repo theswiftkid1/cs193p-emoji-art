@@ -2,8 +2,8 @@
 //  Grid.swift
 //  Memorize
 //
-//  Created by theswiftkid_ on 7/15/20.
-//  Copyright © 2020 theswiftkid_. All rights reserved.
+//  Created by theswiftkid on 7/15/20.
+//  Copyright © 2020 theswiftkid. All rights reserved.
 //
 
 import SwiftUI

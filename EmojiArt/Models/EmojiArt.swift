@@ -2,8 +2,8 @@
 //  EmojiArt.swift
 //  EmojiArt
 //
-//  Created by theswiftkid_ on 8/10/20.
-//  Copyright © 2020 theswiftkid_. All rights reserved.
+//  Created by theswiftkid on 8/10/20.
+//  Copyright © 2020 theswiftkid. All rights reserved.
 //
 
 import Foundation
