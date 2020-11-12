@@ -14,6 +14,9 @@ class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
     let id: UUID
     var singleEmojiId: Int? = nil
     var emojis: [EmojiArt.Emoji] { emojiArt.emojis }
+    var url: URL? {
+        didSet { save(emojiArt) }
+    }
     private var autosaveCancellable: AnyCancellable?
     private var fetchImageCancellable: AnyCancellable?
 
@@ -35,6 +38,22 @@ class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
             UserDefaults.standard.set(emojiArt.json, forKey: defaultsKey)
         }
         fetchBackgroundImageData()
+    }
+
+    init(url: URL) {
+        id = UUID()
+        self.url = url
+        emojiArt = EmojiArt(json: try? Data(contentsOf: url)) ?? EmojiArt()
+        fetchBackgroundImageData()
+        autosaveCancellable = $emojiArt.sink { emojiArt in
+            self.save(emojiArt)
+        }
+    }
+
+    private func save(_ emojiArt: EmojiArt) {
+        if url != nil {
+            try? emojiArt.json?.write(to: url!)
+        }
     }
 
     func hash(into hasher: inout Hasher) {
