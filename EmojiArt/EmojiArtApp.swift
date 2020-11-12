@@ -16,6 +16,9 @@ struct EmojiArtApp: App {
     init() {
         url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         store = EmojiArtDocumentStore(directory: url)
+        if store.documents.isEmpty {
+            store.addDocument()
+        }
     }
 
     var body: some Scene {

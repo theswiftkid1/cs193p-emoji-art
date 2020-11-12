@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		45AF168C255DCEC6008B93FC /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45AF168B255DCEC6008B93FC /* ImagePicker.swift */; };
 		CA4DC6BB24E093BF006C4B08 /* EmojiArtDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4DC6BA24E093BF006C4B08 /* EmojiArtDocumentView.swift */; };
 		CA4DC6BD24E093C0006C4B08 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CA4DC6BC24E093C0006C4B08 /* Assets.xcassets */; };
 		CA4DC6C024E093C0006C4B08 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CA4DC6BF24E093C0006C4B08 /* Preview Assets.xcassets */; };
@@ -28,6 +29,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		45AF168B255DCEC6008B93FC /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		CA4DC6B324E093BF006C4B08 /* EmojiArt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EmojiArt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA4DC6BA24E093BF006C4B08 /* EmojiArtDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiArtDocumentView.swift; sourceTree = "<group>"; };
 		CA4DC6BC24E093C0006C4B08 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -124,6 +126,7 @@
 				CAD7915E254466DD00E36893 /* EditableText.swift */,
 				CAD79155254450BE00E36893 /* EmojiArtDocumentChooser.swift */,
 				CA4DC6BA24E093BF006C4B08 /* EmojiArtDocumentView.swift */,
+				45AF168B255DCEC6008B93FC /* ImagePicker.swift */,
 				CAD79159254450CB00E36893 /* Grid.swift */,
 				CAD7915A254450CB00E36893 /* GridLayout.swift */,
 				CAD10A712525232E0065862C /* OptionalImage.swift */,
@@ -227,6 +230,7 @@
 				CAD7915F254466DD00E36893 /* EditableText.swift in Sources */,
 				CA571B792521291700727682 /* EmojiArtApp.swift in Sources */,
 				CAD79156254450BE00E36893 /* EmojiArtDocumentStore.swift in Sources */,
+				45AF168C255DCEC6008B93FC /* ImagePicker.swift in Sources */,
 				CA93954625420FFB00DA08C5 /* Spinning.swift in Sources */,
 				CA93954925421CFD00DA08C5 /* PaletteChooser.swift in Sources */,
 			);

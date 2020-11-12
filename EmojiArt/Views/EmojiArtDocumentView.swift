@@ -14,7 +14,40 @@ struct EmojiArtDocumentView: View {
     @State private var chosenPalette: String
     @State private var explainBackgroundPaste = false
     @State private var confirmBackgroundPaste = false
+    @State private var showImagePicker = false
+    @State private var imagePickerSourceType = UIImagePickerController.SourceType.photoLibrary
     private let defaultEmojiSize: CGFloat = 40
+
+    private var pickImage: some View {
+        HStack {
+            Image(systemName: "photo")
+                .imageScale(.large)
+                .foregroundColor(.accentColor)
+                .onTapGesture {
+                    showImagePicker = true
+                    imagePickerSourceType = .photoLibrary
+                }
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Image(systemName: "camera")
+                    .imageScale(.large)
+                    .foregroundColor(.accentColor)
+                    .onTapGesture {
+                        showImagePicker = true
+                        imagePickerSourceType = .camera
+                    }
+            }
+        }
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker(sourceType: imagePickerSourceType) { image in
+                if image != nil {
+                    DispatchQueue.main.async {
+                        document.backgroundURL = image!.storeInFilesystem()
+                    }
+                }
+                showImagePicker = false
+            }
+        }
+    }
 
     init(document: EmojiArtDocument) {
         self.document = document
@@ -101,6 +134,7 @@ struct EmojiArtDocumentView: View {
                     return dropToCanvas(providers: providers, at: location)
                 }
                 .navigationBarItems(
+                    leading: pickImage,
                     trailing:
                         Button {
                             if let url = UIPasteboard.general.url, url != document.backgroundURL {
